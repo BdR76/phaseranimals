@@ -84,7 +84,7 @@ function createSomeAnimals () {
 	};
 }
 
-function playerHitsAnimal (animal, player) {
+function playerHitsAnimal (player, animal) {
 	//  player hits an animal, remove the animal
 	animal.kill();
 }
@@ -102,11 +102,11 @@ var Animal = function(game, x, y, animaltype) {
 	this.yspeed = 1;
 	this.AnimalType = animaltype;
 
-	// **ERROR ON NEXT LINE** -> Uncaught TypeError: Cannot set property 'frame' of undefined 
-	//this.sprite.frame = animaltype; // animal frame 0..3
+	// Note: Animal extend the Sprite class so we can access Sprite.frame directly here
+	this.frame = animaltype; // animal frame 0..3
 	
 	// enable physics for animal
-	//game.physics.enable(this, Phaser.Physics.ARCADE);
+	game.physics.enable(this, Phaser.Physics.ARCADE);
 }
 
 // Specific JavaScript object/construcor stuff going on here(?)
@@ -117,8 +117,8 @@ Animal.prototype.constructor = Animal;
 // animal update move around
 Animal.prototype.update = function() {
 	// If this animal is disabled then don't do anything
-	if (this.active) {
-		//aads
+	if (this.alive) {
+		// move animals around
 		switch (this.AnimalType) {
 			case 0: // not moving
 				break;
@@ -128,22 +128,22 @@ Animal.prototype.update = function() {
 				if (this.y > this.game.input.activePointer.y) {this.y = this.y + ANIMAL_SPEED;};
 				if (this.y < this.game.input.activePointer.y) {this.y = this.y - ANIMAL_SPEED;};
 				// don't move outside screen bounds
-				if (this.x < 0)			 {this.x = 0};
-				if (this.x > CANVAS_WIDTH)  {this.x = CANVAS_WIDTH};
-				if (this.y < 0)			 {this.y = 0};
-				if (this.y > CANVAS_HEIGHT) {this.y = CANVAS_HEIGHT};
+				if (this.x < 0)			       {this.x = 0};
+				if (this.x > CANVAS_WIDTH-80)  {this.x = CANVAS_WIDTH-80};
+				if (this.y < 0)			       {this.y = 0};
+				if (this.y > CANVAS_HEIGHT-80) {this.y = CANVAS_HEIGHT-80};
 				break;
 			case 2: // move left-right
 				this.x = this.x + this.xspeed;
 				// move in opposite direction when on screen bounds
-				if ( (this.x < 0) || (this.x > CANVAS_WIDTH) ) {this.xspeed = -1 * this.xspeed;};
+				if ( (this.x < 0) || (this.x > CANVAS_WIDTH-80) ) {this.xspeed = -1 * this.xspeed;};
 				break;
 			case 3: // move all over screen
 				this.x = this.x + this.xspeed;
 				this.y = this.y + this.yspeed;
 				// move in opposite direction when on screen bounds
-				if ( (this.x < 0) || (this.x > CANVAS_WIDTH)  ) {this.xspeed = -1 * this.xspeed;};
-				if ( (this.y < 0) || (this.y > CANVAS_HEIGHT) ) {this.yspeed = -1 * this.yspeed;};
+				if ( (this.x < 0) || (this.x > CANVAS_WIDTH-80)  ) {this.xspeed = -1 * this.xspeed;};
+				if ( (this.y < 0) || (this.y > CANVAS_HEIGHT-80) ) {this.yspeed = -1 * this.yspeed;};
 				break;
 		};
 	};
