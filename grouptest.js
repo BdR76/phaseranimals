@@ -29,10 +29,8 @@ function create() {
 	game.stage.backgroundColor = 0xbada55;
 
 	//  The hero!
-	player = game.add.sprite((CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
-	player.frame = 4; // frame with zookeeper
-	player.anchor.setTo(0.5, 0.5);
-	game.physics.enable(player, Phaser.Physics.ARCADE);
+	player = new Player(game);
+	//player.revive();
 
 	//  The animals!
 	animalsGroup = game.add.group();
@@ -72,7 +70,7 @@ function createSomeAnimals () {
 
 		// if there aren't any available, create a new one
 		if (animal === null) {
-			animal = new Animal(this.game, x, y, antype);
+			animal = new Animal(game, x, y, antype);
 			this.animalsGroup.add(animal);
 		};
 
@@ -87,6 +85,35 @@ function createSomeAnimals () {
 function playerHitsAnimal (player, animal) {
 	//  player hits an animal, remove the animal
 	animal.kill();
+}
+
+// -------------------------------------
+// PLAYER OBJECT
+// -------------------------------------
+// player constructor
+var Player = function(game) {
+	//this.sprite = game.add.sprite((CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
+	Phaser.Sprite.call(this, game, (CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
+
+	this.frame = 4; // frame with zookeeper
+	this.anchor.setTo(0.5, 0.5);
+
+	// enable physics for player
+	game.physics.enable(this, Phaser.Physics.ARCADE);
+}
+
+// Specific JavaScript object/construcor stuff going on here(?)
+// Player is a type of Phaser.Sprite
+Player.prototype = Object.create(Phaser.Sprite.prototype);
+Player.prototype.constructor = Player;
+
+// animal update move around
+Player.prototype.update = function() {
+	// simple player input and movement
+	if (game.input.keyboard.isDown(KEYS.UP))    {this.y -= 2;};
+	if (game.input.keyboard.isDown(KEYS.DOWN))  {this.y += 2;};
+	if (game.input.keyboard.isDown(KEYS.LEFT))  {this.x -= 2;};
+	if (game.input.keyboard.isDown(KEYS.RIGHT)) {this.x += 2;};			
 }
 
 // -------------------------------------
