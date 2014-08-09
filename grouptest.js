@@ -7,12 +7,15 @@
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
 var ANIMAL_COUNT = 20;
-var ANIMAL_SPEED = 2;
+var MOVE_SPEED = 2;
+var SPRITE_SIZE = 80;
+var SPRITE_HALF = 40;
 
 var game = new Phaser.Game(CANVAS_WIDTH, CANVAS_HEIGHT, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update, render: render });
 
 var player;
 var animalsGroup;
+var cursors;
 
 // -------------------------------------
 // PHASER GAME FUNCTIONS
@@ -30,7 +33,10 @@ function create() {
 
 	//  The hero!
 	player = new Player(game);
-	//player.revive();
+	game.world.add(player);
+
+	// add controls to play the game
+	cursors = game.input.keyboard.createCursorKeys();
 
 	//  The animals!
 	animalsGroup = game.add.group();
@@ -84,6 +90,10 @@ function createSomeAnimals () {
 
 function playerHitsAnimal (player, animal) {
 	//  player hits an animal, remove the animal
+	if (animal.frame == 0) {console.log('Catch animal: elephant')};
+	if (animal.frame == 1) {console.log('Catch animal: giraffe')};
+	if (animal.frame == 2) {console.log('Catch animal: crocodile')};
+	if (animal.frame == 3) {console.log('Catch animal: ape')};
 	animal.kill();
 }
 
@@ -91,15 +101,15 @@ function playerHitsAnimal (player, animal) {
 // PLAYER OBJECT
 // -------------------------------------
 // player constructor
-var Player = function(game) {
-	//this.sprite = game.add.sprite((CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
-	Phaser.Sprite.call(this, game, (CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
+var Player = function(pgame) {
+	//this.sprite = pgame.add.sprite((CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
+	Phaser.Sprite.call(this, pgame, (CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
 
 	this.frame = 4; // frame with zookeeper
 	this.anchor.setTo(0.5, 0.5);
 
 	// enable physics for player
-	game.physics.enable(this, Phaser.Physics.ARCADE);
+	pgame.physics.enable(this, Phaser.Physics.ARCADE);
 }
 
 // Specific JavaScript object/construcor stuff going on here(?)
@@ -107,22 +117,22 @@ var Player = function(game) {
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
-// animal update move around
+// player update and input
 Player.prototype.update = function() {
-	// simple player input and movement
-	if (game.input.keyboard.isDown(KEYS.UP))    {this.y -= 2;};
-	if (game.input.keyboard.isDown(KEYS.DOWN))  {this.y += 2;};
-	if (game.input.keyboard.isDown(KEYS.LEFT))  {this.x -= 2;};
-	if (game.input.keyboard.isDown(KEYS.RIGHT)) {this.x += 2;};			
+	// player moves twice as fast as animals
+	if (cursors.up.isDown)    {this.y = this.y - MOVE_SPEED*2;};
+	if (cursors.down.isDown)  {this.y = this.y + MOVE_SPEED*2;};
+	if (cursors.left.isDown)  {this.x = this.x - MOVE_SPEED*2;};
+	if (cursors.right.isDown) {this.x = this.x + MOVE_SPEED*2;};
 }
 
 // -------------------------------------
 // ANIMAL OBJECT
 // -------------------------------------
 // animal constructor
-var Animal = function(game, x, y, animaltype) {
-	//this.sprite = game.add.sprite((CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
-	Phaser.Sprite.call(this, game, x, y, 'zookeeper');
+var Animal = function(pgame, x, y, animaltype) {
+	//this.sprite = pgame.add.sprite((CANVAS_WIDTH / 2), (CANVAS_HEIGHT / 2), 'zookeeper');
+	Phaser.Sprite.call(this, pgame, x, y, 'zookeeper');
 	
 	// set animal fields
 	this.xspeed = 1;
@@ -133,7 +143,7 @@ var Animal = function(game, x, y, animaltype) {
 	this.frame = animaltype; // animal frame 0..3
 	
 	// enable physics for animal
-	game.physics.enable(this, Phaser.Physics.ARCADE);
+	pgame.physics.enable(this, Phaser.Physics.ARCADE);
 }
 
 // Specific JavaScript object/construcor stuff going on here(?)
@@ -150,14 +160,14 @@ Animal.prototype.update = function() {
 			case 0: // not moving
 				break;
 			case 1: // move away from player
-				if (this.x > this.game.input.activePointer.x) {this.x = this.x + ANIMAL_SPEED;};
-				if (this.x < this.game.input.activePointer.x) {this.x = this.x - ANIMAL_SPEED;};
-				if (this.y > this.game.input.activePointer.y) {this.y = this.y + ANIMAL_SPEED;};
-				if (this.y < this.game.input.activePointer.y) {this.y = this.y - ANIMAL_SPEED;};
+				if (this.x+SPRITE_HALF > player.x) {this.x = this.x + MOVE_SPEED;};
+				if (this.x+SPRITE_HALF < player.x) {this.x = this.x - MOVE_SPEED;};
+				if (this.y+SPRITE_HALF > player.y) {this.y = this.y + MOVE_SPEED;};
+				if (this.y+SPRITE_HALF < player.y) {this.y = this.y - MOVE_SPEED;};
 				// don't move outside screen bounds
-				if (this.x < 0)			       {this.x = 0};
+				if (this.x < 0)                {this.x = 0};
 				if (this.x > CANVAS_WIDTH-80)  {this.x = CANVAS_WIDTH-80};
-				if (this.y < 0)			       {this.y = 0};
+				if (this.y < 0)                {this.y = 0};
 				if (this.y > CANVAS_HEIGHT-80) {this.y = CANVAS_HEIGHT-80};
 				break;
 			case 2: // move left-right
