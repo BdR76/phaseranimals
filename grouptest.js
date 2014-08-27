@@ -124,7 +124,7 @@ function playerHitsAnimal (ply, ani) {
 	ani.enableBody = false;
 	// animal slides back in 120ms before it is killed
 	var tween = game.add.tween(ani).to( { x: xgoal, y: ygoal }, 200, Phaser.Easing.Linear.None, true);
-	//tween.onCompleteCallback(killAnimal, this);
+	tween.onCompleteCallback(killAnimal(), this);
 }
 
 // -------------------------------------
