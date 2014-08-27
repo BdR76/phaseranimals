@@ -6,7 +6,7 @@
 // -------------------------------------
 var CANVAS_WIDTH = 800;
 var CANVAS_HEIGHT = 600;
-var ANIMAL_COUNT = 20;
+var MAX_ANIMAL_COUNT = 20;
 var MOVE_SPEED = 2;
 var SPRITE_SIZE = 80;
 var SPRITE_HALF = 40;
@@ -16,6 +16,7 @@ var game = new Phaser.Game(CANVAS_WIDTH, CANVAS_HEIGHT, Phaser.AUTO, 'phaser-exa
 var player;
 var animalsGroup;
 var cursors;
+var addcountdown; // countdown to add new animal
 
 // -------------------------------------
 // PHASER GAME FUNCTIONS
@@ -43,12 +44,25 @@ function create() {
 	animalsGroup.enableBody = true;
 	animalsGroup.physicsBodyType = Phaser.Physics.ARCADE;
 
-	createSomeAnimals();	
+	// initial add animals
+	createSomeAnimals(12);
+	
+	addcountdown = 0;
+		
 }
 
 function update() {
-	//  Run collision
-	game.physics.arcade.overlap(animalsGroup, player, playerHitsAnimal, null, this);
+	// coun down to add new animals
+	addcountdown = addcountdown - 1;
+	if (addcountdown <= 0) {
+		if (animalsGroup.countLiving() < MAX_ANIMAL_COUNT) {
+			createSomeAnimals(1);
+		};
+		addcountdown = 120; // wait 2 sec. before adding new animal
+	};
+
+	// check collision
+	game.physics.arcade.overlap(player, animalsGroup, playerHitsAnimal, null, this);
 }
 
 function render() {
@@ -61,12 +75,13 @@ function render() {
 // -------------------------------------
 // GAME LOGIC
 // -------------------------------------
-function createSomeAnimals () {
+function createSomeAnimals(iHowMany) {
 
-	for (var i = 0; i < ANIMAL_COUNT; i++)
+	for (var i = 0; i < iHowMany; i++)
 	{
 		// which type of animal 0..3
-		var antype = (i % 4); // i modulo 4, will cycle through values 0..3 
+		var antype = (this.animalsGroup.countLiving() % 4); // modulo 4, will cycle through values 0..3 
+
 		// random position
 		var x = game.rnd.integerInRange(0, CANVAS_WIDTH-80);
 		var y = game.rnd.integerInRange(0, CANVAS_HEIGHT-80);
@@ -84,17 +99,32 @@ function createSomeAnimals () {
 		animal.revive();
 		animal.x = x;
 		animal.y = y;
+		//animal.enableBody = true;
+		animal.frame = antype;
 		animal.AnimalType = antype;
 	};
 }
 
-function playerHitsAnimal (player, animal) {
+function killAnimal (ani) {
 	//  player hits an animal, remove the animal
-	if (animal.frame == 0) {console.log('Catch animal: elephant')};
-	if (animal.frame == 1) {console.log('Catch animal: giraffe')};
-	if (animal.frame == 2) {console.log('Catch animal: crocodile')};
-	if (animal.frame == 3) {console.log('Catch animal: ape')};
-	animal.kill();
+	ani.kill();
+}
+
+function playerHitsAnimal (ply, ani) {
+	//  player hits an animal, remove the animal
+	if (ani.frame == 0) {console.log('Catch animal: elephant')};
+	if (ani.frame == 1) {console.log('Catch animal: giraffe')};
+	if (ani.frame == 2) {console.log('Catch animal: crocodile')};
+	if (ani.frame == 3) {console.log('Catch animal: ape')};
+
+	// calculate slide goal x,y pos, opposite direction of player
+	var xgoal = ani.x - (ply.x - ani.x);
+	var ygoal = ani.y - (ply.y - ani.y);
+
+	ani.enableBody = false;
+	// animal slides back in 120ms before it is killed
+	var tween = game.add.tween(ani).to( { x: xgoal, y: ygoal }, 200, Phaser.Easing.Linear.None, true);
+	//tween.onCompleteCallback(killAnimal, this);
 }
 
 // -------------------------------------
