@@ -95,6 +95,9 @@ function createSomeAnimals(iHowMany) {
 			this.animalsGroup.add(animal);
 		};
 
+		animal.animations.add('myanimation', [ antype, antype+5, antype+10, antype+5], 8, true);
+		animal.play('myanimation', 5, true, false); // fps=5, loop=true, killOnComplete=false
+		
 		// else revive the animal (set it's alive property to true)
 		animal.revive();
 		animal.x = x;
@@ -105,9 +108,8 @@ function createSomeAnimals(iHowMany) {
 	};
 }
 
-function killAnimal (ani) {
-	//  player hits an animal, remove the animal
-	ani.kill();
+function killAnimal (panimal) {
+	panimal.kill();
 }
 
 function playerHitsAnimal (ply, ani) {
@@ -124,7 +126,9 @@ function playerHitsAnimal (ply, ani) {
 	ani.enableBody = false;
 	// animal slides back in 120ms before it is killed
 	var tween = game.add.tween(ani).to( { x: xgoal, y: ygoal }, 200, Phaser.Easing.Linear.None, true);
-	tween.onCompleteCallback(killAnimal(), this);
+	//tween.onCompleteCallback(killAnimal(), ani);
+	//tween.onCompleteCallback(function(){ani.kill();}, ani);
+	tween.onComplete.add(function(){ ani.kill(); }, this);
 }
 
 // -------------------------------------
